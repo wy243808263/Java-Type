@@ -1,0 +1,27 @@
+public class GetCh2Spell {
+    public static int compare(String str1, String str2)
+     {
+         int result = 0;
+         String m_s1 = null;
+         String m_s2 = null;
+         try
+         {
+             m_s1 = new String(str1.getBytes(_FromEncode_), _ToEncode_);
+             m_s2 = new String(str2.getBytes(_FromEncode_), _ToEncode_);
+         }
+         catch(Exception e)
+         {
+             return str1.compareTo(str2);
+         }
+         result = chineseCompareTo(m_s1, m_s2);
+         return result;
+     }
+     public static int getCharCode(String s)
+     {
+         if(s == null && s.equals(""))
+             return -1;
+         byte b[] = s.getBytes();
+         int value = 0;
+         for(int i = 0; i < b.length && i <= 2; i++)
+             value = value * 100 + b[i];
+         return value;

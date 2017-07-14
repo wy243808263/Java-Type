@@ -1,0 +1,229 @@
+/*
+一个验证图形生成程序. 支持中文的验证码生成程序. 写的时候没有仔细看, 可能有小问题.但是运行没有任何问题.
+
+    使用方法 :
+    <tr><td>&nbsp;验 证 码:&nbsp;</td>
+    <td><input tabindex=3 maxlength=4 size=4 name=yzmimg usage="int" tip="验证码请输入阿拉伯数字！" title="输入阿拉伯数字"/>&nbsp;</td>
+    <td><a href="javascript:refreshImg('validateCodeImg');"><img src="yzmImg.jsp" alt="请在左侧输入对应的阿拉伯数字" name="validateCodeImg" border=0 align="absmiddle" id="validateCodeImg" /></a>
+    输入对应阿拉伯数字．看不清点请点击更换</td></tr>
+
+ 
+
+    <script language="javascript" type="text/javascript">
+    function refreshImg(imgID){var img = document.getElementById(imgID);  img.src = img.src;}
+    </script>
+
+    生成图形的jsp文件:
+*/
+
+    <%@page session="true" contentType="image/jpeg; charset=gb2312"
+
+    import="java.awt.image.*,java.awt.*"
+
+    import="java.util.*"
+
+    import="javax.servlet.*"
+
+    import="javax.servlet.http.*"
+
+    import="javax.imageio.*"
+
+    import="java.io.OutputStream"
+
+    import="java.io.OutputStream"
+
+    %><%!
+
+      private int iCharHeight = 20;
+
+      private int iCharCnt = 4;
+
+      private int iMaxOffset = 8; //字符位置左右最大便宜像素
+
+      private int iImgWidth = 20*iCharCnt + iMaxOffset*2; //图片宽度
+
+      private int iImgHeight = iCharHeight + 5; //图片高度
+
+      private int iDisturbLineCnt = 8; //干扰线数量
+
+      //////////////////////////////////////////////////////
+
+      //private String Src = "零壹贰叁肆伍陆柒捌玖";
+
+      private String Src = "零一二三四五六七八九";
+
+      //private String Src = "的了是我不在人们有来他这上着个地到大里说就去子得也和那要下看天时过出小么起你都把好还多没为又可家学只以主会样年想生同老中十从自面前头道它后然走很像见两用她国动进成回什边作对开而己些现山民候经发工向事命给长水几义三声于高手知理眼志点心战二问但身方实吃做叫当住听革打呢真全才四已所敌之最光产情路分总条白话东席次亲如被花口放儿常气五第使写军吧文运再果怎定许快明行因别飞外树物活部门无往船望新带队先力完却站代员机更九您每风级跟笑啊孩万少直意夜比阶连车重便斗马哪化太指变社似士者干石满日决百原拿群究各六本思解立河村八难早论吗根共让相研今其书坐接应关信觉步反处记将千找争领或师结块跑谁草越字加脚紧爱等习阵怕月青半火法题建赶位唱海七女任件感准张团屋离色脸片科倒睛利世刚且由送切星导晚表够整认响雪流未场该并底深刻平伟忙提确近亮轻讲农古黑告界拉名呀土清阳照办史改历转画造嘴此治北必服雨穿内识验传业菜爬睡兴形量咱观苦体众通冲合破友度术饭公旁房极南枪读沙岁线野坚空收算至政城劳落钱特围弟胜教热展包歌类渐强数乡呼性音答哥际旧神座章帮啦受系令跳非何牛取入岸敢掉忽种装顶急林停息句区衣般报叶压慢叔背细";
+
+      String[] strFontNames = {
+
+          "隶书", "华文新魏", "黑体", "幼圆", "楷体_GB2312", "新宋体", "华文彩云"};
+
+      private int FONTSTYLE = Font.BOLD | Font.ITALIC;
+
+ //////////////////////////////////////////////////////
+
+      private String getRandomStr(Random random, int cnt, StringBuffer sbNum) {
+
+        String str = "";
+
+        int max = Src.length();
+
+        for (int i = 0; i < cnt; i++) {
+
+          int t = random.nextInt(max);
+
+          str += Src.charAt(t);
+
+          sbNum.append(t);
+
+        }
+
+        return str;
+
+      }
+//生成随机颜色
+
+      Color getRandColor(Random random, int fc, int bc) {
+
+        if (fc > 255)
+
+          fc = 255;
+
+        if (bc > 255)
+
+          bc = 255;
+
+        int r = fc + random.nextInt(bc - fc);
+
+        int g = fc + random.nextInt(bc - fc);
+
+        int b = fc + random.nextInt(bc - fc);
+
+        return new Color(r, g, b);
+
+      }
+
+    %><%
+
+      String strText = "";
+
+      try {
+
+        Date now = new Date();
+
+        Random random = new Random(now.getTime());
+
+        now = null;
+
+        StringBuffer bufNum = new StringBuffer("");
+
+        strText = getRandomStr(random, iCharCnt, bufNum);
+
+ 
+
+        response.setHeader("Cache-Control", "no-store"); //HTTP 1.1
+
+        response.setHeader("Pragma", "no-cache"); //HTTP 1.0
+
+        response.setDateHeader("Expires", 0); //prevents caching at the proxy server
+
+        BufferedImage image = new BufferedImage(iImgWidth, iImgHeight, BufferedImage.TYPE_INT_RGB);
+
+        Graphics g = image.getGraphics();
+
+      // 设定图像背景色(因为是做背景，所以偏淡)
+
+        g.setColor(getRandColor(random, 200, 250));
+
+        g.fillRect(0, 0, iImgWidth, iImgHeight);
+
+      //画边框
+
+        g.setColor(Color.black);
+
+        g.drawRect(0, 0, iImgWidth - 1, iImgHeight - 1);
+
+        //干扰线
+
+for (int k = 0; k < iDisturbLineCnt; k++)
+
+        {
+
+          g.setColor(getRandColor(random, 160, 200));
+
+          g.drawLine(random.nextInt(iImgWidth), random.nextInt(iImgHeight), random.nextInt(iImgWidth), random.nextInt(iImgHeight));
+
+        }
+int startx = 0;
+
+        int strWidth = 0;
+
+        for (int i = 0; i < iCharCnt; i++) {
+
+          g.setColor(getRandColor(random, 10, 150));
+
+          char ch = strText.charAt(i);
+
+          String fname = strFontNames[random.nextInt(strFontNames.length)];
+
+          Font f = new Font(fname, FONTSTYLE, iCharHeight);
+
+          System.out.println(fname + "  " + ch);
+
+          g.setFont(f);
+
+          g.drawString("" + ch, startx + strWidth + random.nextInt(iMaxOffset), iCharHeight);
+
+          java.awt.FontMetrics fm = g.getFontMetrics();
+
+          strWidth += fm.charWidth(ch);
+
+          fm = null;
+
+        }
+
+      // 图象生效
+
+        g.dispose();
+
+        ServletOutputStream responseOutputStream = response.getOutputStream();
+
+        // 输出图象到页面
+
+        ImageIO.write(image, "JPEG", responseOutputStream);
+
+        //以下关闭输入流！~~~
+
+        responseOutputStream.flush();
+
+        responseOutputStream.close();
+
+        /**//*
+
+        ServletOutputStream outstream = response.getOutputStream();
+
+        JPEGImageEncoder encoder = JPEGCodec.createJPEGEncoder(outstream);
+
+        encoder.encode(image);
+
+        outstream.close();
+
+        */
+
+        // 将认证码存入SESSION
+
+        session.setAttribute("YZMIMAGE", bufNum.toString());
+
+        random = null;
+
+        bufNum = null;
+
+        image = null;
+
+      }
+
+      catch (Exception ex) {ex.printStackTrace();  }%>
+
+
+
+
